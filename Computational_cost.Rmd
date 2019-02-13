@@ -2,11 +2,12 @@
 title: "Spike Computational cost"
 author: "Gabriel Ristow Cidral / Sara Marín-Lopez"
 date: " 13 / 02 / 20"
-output: html_document
-  code_folding: hide
+output: 
+  html_document:
+    code_folding: hide
 ---
 
-This spike is intended to provide ideas how of to make your code more efficient. 
+This spike is intended to provide ideas how of to make your code more efficient. The data used is the indoor 
 
 It will approach 3 methods: Smart samples, parallel processing, modeling without caret, opmitization of random forest (mtry)
 
@@ -14,26 +15,41 @@ It will approach 3 methods: Smart samples, parallel processing, modeling without
 
 First, imagine you want to sample the data to try different models faster. You could use the functions sample_n, but you would inccur the risk of having a undistributed sample (such as all observations in building 0) 
 
-```{r part 1, message=F}
+
+Load data 
+```{r load data, message=F}
 
 pacman::p_load(readr, dplyr, caret, plotly)
 
 setwd("C:/Users/gabri/Desktop/Ubiqum/R/Deep_Analytics_and_Visualization/Task_3/Wifi_fingerprinting")
 
-# setwd(
-# "C:/Users/gabri/Desktop/Ubiqum/R/Deep_Analytics_and_Visualization/Task_3/"
-# )
 train <- read_csv("trainingData.csv", na = c("N/A"))
-
-sample <- train %>% group_by(FLOOR, BUILDINGID) %>% sample_n(10)
-table(sample$BUILDINGID)
-table(sample$FLOOR)
-
 
 ```
 
+Sample data
+```{r create sample}
 
-```{r plotly, echo=F}
+sample <- train %>% group_by(FLOOR, BUILDINGID) %>% sample_n(10)
+
+```
+
+check frequency floor
+```{r table floor} 
+
+table(sample$FLOOR)
+
+```
+
+check frequency building
+```{r table building} 
+
+table(sample$BUILDINGID)
+
+```
+
+plot sample
+```{r plotly1, echo=F}
 
 p <- sample %>%
 plot_ly(type = "scatter3d",
@@ -68,12 +84,16 @@ plot_ly(type = "scatter3d",
           )))
 
 
-
-table(sample$BUILDINGID)
-
-
-
 p
+
+
+
+a <- sample %>% dplyr:: filter(BUILDINGID == 2) %>% plot_ly(type = "scatter3d",
+        x = ~ LATITUDE,
+        y = ~ LONGITUDE,
+        z = ~ FLOOR,
+        mode = 'markers')
+a
 
 ```
 
