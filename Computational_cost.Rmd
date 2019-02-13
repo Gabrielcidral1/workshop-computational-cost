@@ -3,6 +3,7 @@ title: "Spike Computational cost"
 author: "Gabriel Ristow Cidral / Sara Marín-Lopez"
 date: " 13 / 02 / 20"
 output: html_document
+     code_folding: hide
 ---
 
 This spike is intended to provide ideas how of to make your code more efficient. 
@@ -16,6 +17,9 @@ pacman::p_load(readr, dplyr, caret, plotly)
 
 setwd("C:/Users/gabri/Desktop/Ubiqum/R/Deep_Analytics_and_Visualization/Task_3/Wifi_fingerprinting")
 
+# setwd(
+# "C:/Users/gabri/Desktop/Ubiqum/R/Deep_Analytics_and_Visualization/Task_3/"
+# )
 train <- read_csv("trainingData.csv", na = c("N/A"))
 
 sample <- train %>% group_by(FLOOR, BUILDINGID) %>% sample_n(10)
@@ -69,4 +73,120 @@ table(sample$BUILDINGID)
 p
 
 ```
+
+## PARALLEL PROCESSING ##
+A computer usually has multiple cores. Tipically, R is going to use only one of them, but we can increase this number, allowing us to execute more computations at the same time. 
+
+**How to do it on Windows**
+<ul>
+  <li>Install the doParallel package </li>
+  <li>Check how many cores you have with the function **<span style="color:MIDNIGHTBLUE">detectCores()</span>**.</li>
+  <li>Save the number of cores that you would like to execute with the function **<span style="color:MIDNIGHTBLUE ">makeCluster()</span>**. A good practice is to leave one for other tasks. </li>
+  <li>Register the cluster with the function **<span style="color:MIDNIGHTBLUE">registerDoParallel()</span>**</li>
+</ul>
+
+**How to do it on Mac/Linux**
+<ul>
+  <li>Install the doMC package </li>
+  <li>Check how many cores you have with the function **<span style="color:MIDNIGHTBLUE">getDoParWorkers()</span>** </li>
+  <li>Save the number of cores that you would like to execute with the function **<span style="color:MIDNIGHTBLUE">makeCluster()</span>**. A good practice is to leave one for other tasks. </li>
+  <li>Register the cluster with the function **<span style="color:MIDNIGHTBLUE">registerDoMC()</span>**</li>
+</ul>
+
+Now you can apply parallel processing! For example, you can use it in the cross validation or in the RF with the parameter "allowParallel = TRUE". 
+
+**Challenge: Train the same sample with parallel processing**
+```{r eval=FALSE,message=FALSE}
+# Load the library
+library(doParallel)
+
+# Check number of cores
+detectCores()
+
+# Save the number of cores I'm going to use
+cluster <- makeCluster(detectCores() - 1)
+
+# Register the cluster
+registerDoParallel(cluster)
+
+# Apply it on the cross validation
+fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 3, allowParallel = TRUE)
+
+```
+
+## SPECIFIC PACKAGES ##
+### Random Forest: package randomForest ###
+This is the most usual package for training a random forest. It's very user friendly and robust. If you want to learn more about other packages check this [resource](https://www.linkedin.com/pulse/different-random-forest-packages-r-madhur-modi/).
+
+Let's see which are the main parameters of the function **<span style="color:MIDNIGHTBLUE">randomForest</span>**:
+<ul>
+  <li> ntree: number of trees to grow </li>
+  <li> mtry: how many random variables will be selected to grow in a single tree </li>
+  <li> importance: should importance of predictors be assessed? *Keep in mind that if your data includes categorical variables with different number of levels, random forests are biased in favor of those variables with more levels.* </li>
+</ul>
+
+Another useful function from this package is **<span style="color:MIDNIGHTBLUE">tuneRF()</span>**. Starting with the default value of mtry, it searchs for the optimal value. 
+
+**Your turn! Try to obtain the best mtry for your data and train a random forest using this package.**
+
+```{r eval=FALSE, message=FALSE }
+# Load package
+library(randomForest)
+
+# Get the best mtry
+bestmtry_rf<-tuneRF(training[WAPS], training$LONGITUDE, ntreeTry=100,stepFactor=2,improve=0.05,trace=TRUE, plot=T) 
+
+# Saving the waps in a vector
+WAPs<-grep("WAP", names(train), value=T))
+
+# Train a random forest using that mtry
+system.time(longitude_rf<-randomForest(y=train$LONGITUDE,x=train[WAPs],importance=T,method="rf", ntree=100, mtry=104))
+```
+
+### KNN: kknn package ###
+This is the most usual package for training a knn. Let's see which are the main parameters of the function **<span style="color:MIDNIGHTBLUE">train.kknn</span>**:
+<ul>
+  <li> ks: number of neighbours </li>
+</ul>
+
+**Your turn! Try to train a knn with this package**
+```{r eval=FALSE, message=FALSE}
+# Load the package
+library(knnn)
+
+# Train the model
+system.time(longitude_knn<-kknn())
+
+```
+
+### SVM:  ###
+
+
+## SAVING AND LOADING MODELS ##
+You can save your best models to a file. This way, you will be able to load/share them later. 
+<ul>
+<li> For saving a model you can mainly use two functions: **<span style="color:MIDNIGHTBLUE">save(___.rda)</span>** or **<span style="color:MIDNIGHTBLUE">saveRDS(____.rds)</span>** </li>
+<li> For loading a model you will need to use **<span style="color:MIDNIGHTBLUE">load(____.rda)</span>** or **<span style="color:MIDNIGHTBLUE">readRDS(____.rds)</span>**
+</ul>
+
+**Your turn! Try to save and load some models.**
+```{r eval=FALSE, message=FALSE}
+# Save a model
+saveRDS(RF_Model, file="RF_Model.rds")
+
+# Load a model
+final_model<-readRD("RF_Model.rds")
+```
+
+### COMPARE RUNNING TIMES ###
+Let's compare how takes a random forest with caret, the function randomForest and parallel processing
+
+You will need to use the function **<span style="color:MIDNIGHTBLUE">microbenchmark()</span>** from the package benchmark. 
+
+*Example: results<-microbenchmark("model"= {"lm=formula"},*
+
+** Do it by yourself **
+```{r eval=FALSE, message=FALSE}
+```
+
 
