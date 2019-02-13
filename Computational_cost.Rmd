@@ -1,8 +1,9 @@
 ---
 title: "Spike Computational cost"
-author: "Gabriel Ristow Cidral / Sara MarÃ­n-Lopez"
+author: "Gabriel Ristow Cidral / Sara Marín López"
 date: " 13 / 02 / 20"
-output: html_document
+output: 
+  html_document:
      code_folding: hide
 ---
 
@@ -15,11 +16,8 @@ It will approach 3 methods: Sma rt samples, parallel processing, modeling withou
 
 pacman::p_load(readr, dplyr, caret, plotly)
 
-setwd("C:/Users/gabri/Desktop/Ubiqum/R/Deep_Analytics_and_Visualization/Task_3/Wifi_fingerprinting")
+# setwd("C:/Users/gabri/Desktop/Ubiqum/R/Deep_Analytics_and_Visualization/Task_3/Wifi_fingerprinting")
 
-# setwd(
-# "C:/Users/gabri/Desktop/Ubiqum/R/Deep_Analytics_and_Visualization/Task_3/"
-# )
 train <- read_csv("trainingData.csv", na = c("N/A"))
 
 sample <- train %>% group_by(FLOOR, BUILDINGID) %>% sample_n(10)
@@ -159,51 +157,84 @@ fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 3, allo
 
 ## SPECIFIC PACKAGES ##
 ### Random Forest: package randomForest ###
-This is the most usual package for training a random forest. It's very user friendly and robust. If you want to learn more about other packages check this [resource](https://www.linkedin.com/pulse/different-random-forest-packages-r-madhur-modi/).
+This is the most usual package for training a random forest. It's very user friendly and robust. If you want to learn more about other packages check this **[resource](https://www.linkedin.com/pulse/different-random-forest-packages-r-madhur-modi/)**.
 
-Let's see which are the main parameters of the function **<span style="color:MIDNIGHTBLUE">randomForest</span>**:
+Let's see which are the main parameters of the function **<span style="color:MIDNIGHTBLUE">[randomForest](https://www.rdocumentation.org/packages/randomForest/versions/4.6-14/topics/randomForest)</span>**:
 <ul>
   <li> ntree: number of trees to grow </li>
   <li> mtry: how many random variables will be selected to grow in a single tree </li>
   <li> importance: should importance of predictors be assessed? *Keep in mind that if your data includes categorical variables with different number of levels, random forests are biased in favor of those variables with more levels.* </li>
 </ul>
 
-Another useful function from this package is **<span style="color:MIDNIGHTBLUE">tuneRF()</span>**. Starting with the default value of mtry, it searchs for the optimal value. 
+Another useful function from this package is **<span style="color:MIDNIGHTBLUE">[tuneRF()](https://www.rdocumentation.org/packages/randomForest/versions/4.6-14/topics/tuneRF)</span>**. Starting with the default value of mtry, it searchs for the optimal value. 
 
-**Your turn! Try to obtain the best mtry for your data and train a random forest using this package.**
+**Your turn! Try to obtain the best mtry for your data and train a random forest using this package and the caret package.**
 
 ```{r eval=FALSE, message=FALSE }
 # Load package
 library(randomForest)
 
-# Get the best mtry
-bestmtry_rf<-tuneRF(training[WAPS], training$LONGITUDE, ntreeTry=100,stepFactor=2,improve=0.05,trace=TRUE, plot=T) 
-
 # Saving the waps in a vector
-WAPs<-grep("WAP", names(train), value=T))
+WAPs<-grep("WAP", names(train), value=T)
+
+# Get the best mtry
+bestmtry_rf<-tuneRF(sample[WAPs], sample$LONGITUDE, ntreeTry=100,stepFactor=2,improve=0.05,trace=TRUE, plot=T) 
 
 # Train a random forest using that mtry
-system.time(longitude_rf<-randomForest(y=train$LONGITUDE,x=train[WAPs],importance=T,method="rf", ntree=100, mtry=104))
+system.time(rf_reg<-randomForest(y=sample$LONGITUDE,x=sample[WAPs],importance=T,method="rf", ntree=100, mtry=22))
+
+# Train a random forest using caret package
+system.time(rf_reg_caret<-train(y=sample$LONGITUDE, x=sample[WAPs], data = sample, method="rf", ntree=100,tuneGrid=expand.grid(.mtry=22)))
 ```
 
-### KNN: kknn package ###
-This is the most usual package for training a knn. Let's see which are the main parameters of the function **<span style="color:MIDNIGHTBLUE">train.kknn</span>**:
-<ul>
-  <li> ks: number of neighbours </li>
-</ul>
+### KNN: caret package ###
+Explore the main parameters of these functions **<span style="color:MIDNIGHTBLUE">[knn3()](https://www.rdocumentation.org/packages/caret/versions/6.0-81/topics/knn3)</span>** for classification and **<span style="color:MIDNIGHTBLUE">[knnreg()](https://www.rdocumentation.org/packages/caret/versions/6.0-81/topics/knnreg)</span>** for regression:
 
-**Your turn! Try to train a knn with this package**
+**Train two knn models with these packages and the caret package:**
 ```{r eval=FALSE, message=FALSE}
 # Load the package
-library(knnn)
+library(caret)
 
-# Train the model
-system.time(longitude_knn<-kknn())
+# Saving the waps in a vector
+WAPs<-grep("WAP", names(sample), value=T)
+
+# Train two classification knn (with knn3 and train)
+system.time(knn_clasif <- knn3(BUILDINGID ~ scale(as.matrix(sample[WAPs])), data = sample))
+
+system.time(knn_clasif_caret<-train(y=sample$BUILDINGID, x=sample[WAPs], data = sample, method="knn"))
+
+# Train two regression knn (with knnreg and caret)
+system.time(knn_reg<-knnreg(LONGITUDE ~ as.matrix(sample[WAPs]), data = sample))
+
+system.time(knn_reg_caret<-train(y=sample$LONGITUDE, x=sample[WAPs], data = sample, method="knn"))
 
 ```
 
-### SVM:  ###
 
+### SVM: e1071 package  ###
+Explore the main parameters of these functions **<span style="color:MIDNIGHTBLUE">[svm()](https://cran.r-project.org/web/packages/e1071/e1071.pdf)</span>** for classification and regression. 
+
+**Train two svm models with these packages and the caret package**
+``` {r eval=FALSE, message=FALSE}
+# Load the packages
+library(e1071)
+library(caret)
+
+# Saving the waps in a vector
+WAPs<-grep("WAP", names(sample), value=T)
+
+# Train two classification svm (with svm and train)
+system.time(svm_clasif <- svm(y = sample$BUILDINGID, x=sample[WAPs]))
+
+system.time(svm_clasif_caret<-train(y=sample$BUILDINGID, x=sample[WAPs], data = sample, method="svmLinear"))
+
+# Train two regression svm (with svm and train)
+system.time(svm_reg <- svm(y = sample$LONGITUDE, x=sample[WAPs]))
+
+system.time(svm_reg_caret<-train(y=sample$LONGITUDE, x=as.matrix(sample[WAPs], data = sample, method="svmLinear")))
+
+ 
+```
 
 ## SAVING AND LOADING MODELS ##
 You can save your best models to a file. This way, you will be able to load/share them later. 
@@ -220,16 +251,4 @@ saveRDS(RF_Model, file="RF_Model.rds")
 # Load a model
 final_model<-readRD("RF_Model.rds")
 ```
-
-### COMPARE RUNNING TIMES ###
-Let's compare how takes a random forest with caret, the function randomForest and parallel processing
-
-You will need to use the function **<span style="color:MIDNIGHTBLUE">microbenchmark()</span>** from the package benchmark. 
-
-*Example: results<-microbenchmark("model"= {"lm=formula"},*
-
-** Do it by yourself **
-```{r eval=FALSE, message=FALSE}
-```
-
 
