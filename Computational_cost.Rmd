@@ -3,13 +3,16 @@ title: "Spike Computational cost"
 author: "Gabriel Ristow Cidral / Sara Marín-Lopez"
 date: " 13 / 02 / 20"
 output: html_document
-     code_folding: hide
+  code_folding: hide
 ---
 
 This spike is intended to provide ideas how of to make your code more efficient. 
 
-It will approach 3 methods: Sma rt samples, parallel processing, modeling without caret, opmitization of random forest (mtry)
+It will approach 3 methods: Smart samples, parallel processing, modeling without caret, opmitization of random forest (mtry)
 
+## "Smart samples"
+
+First, imagine you want to sample the data to try different models faster. You could use the functions sample_n, but you would inccur the risk of having a undistributed sample (such as all observations in building 0) 
 
 ```{r part 1, message=F}
 
@@ -74,7 +77,7 @@ p
 
 ```
 
-## PARALLEL PROCESSING ##
+## Parallel processing ##
 A computer usually has multiple cores. Tipically, R is going to use only one of them, but we can increase this number, allowing us to execute more computations at the same time. 
 
 **How to do it on Windows**
@@ -114,7 +117,7 @@ fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 3, allo
 
 ```
 
-## SPECIFIC PACKAGES ##
+## Specific packages ##
 ### Random Forest: package randomForest ###
 This is the most usual package for training a random forest. It's very user friendly and robust. If you want to learn more about other packages check this [resource](https://www.linkedin.com/pulse/different-random-forest-packages-r-madhur-modi/).
 
@@ -162,7 +165,7 @@ system.time(longitude_knn<-kknn())
 ### SVM:  ###
 
 
-## SAVING AND LOADING MODELS ##
+## Saving and loading models ##
 You can save your best models to a file. This way, you will be able to load/share them later. 
 <ul>
 <li> For saving a model you can mainly use two functions: **<span style="color:MIDNIGHTBLUE">save(___.rda)</span>** or **<span style="color:MIDNIGHTBLUE">saveRDS(____.rds)</span>** </li>
@@ -178,7 +181,7 @@ saveRDS(RF_Model, file="RF_Model.rds")
 final_model<-readRD("RF_Model.rds")
 ```
 
-### COMPARE RUNNING TIMES ###
+### Compare Running times ###
 Let's compare how takes a random forest with caret, the function randomForest and parallel processing
 
 You will need to use the function **<span style="color:MIDNIGHTBLUE">microbenchmark()</span>** from the package benchmark. 
