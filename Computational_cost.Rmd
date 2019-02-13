@@ -113,7 +113,7 @@ Let's see which are the main parameters of the function **<span style="color:MID
   <li> importance: should importance of predictors be assessed? *Keep in mind that if your data includes categorical variables with different number of levels, random forests are biased in favor of those variables with more levels.* </li>
 </ul>
 
-Another useful function from this package is **<span style="color:MIDNIGHTBLUE">tuneRF</span>**. Starting with the default value of mtry, it searchs for the optimal value. 
+Another useful function from this package is **<span style="color:MIDNIGHTBLUE">tuneRF()</span>**. Starting with the default value of mtry, it searchs for the optimal value. 
 
 **Your turn! Try to obtain the best mtry for your data and train a random forest using this package.**
 
@@ -166,4 +166,15 @@ saveRDS(RF_Model, file="RF_Model.rds")
 final_model<-readRD("RF_Model.rds")
 ```
 
-### RESOURCES ###
+### COMPARE RUNNING TIMES ###
+Let's compare how takes a random forest with caret, the function randomForest and parallel processing
+
+You will need to use the function **<span style="color:MIDNIGHTBLUE">microbenchmark()</span>** from the package benchmark. 
+
+*Example: results<-microbenchmark("model"= {"lm=formula"},*
+
+** Do it by yourself **
+```{r eval=FALSE, message=FALSE}
+```
+
+
