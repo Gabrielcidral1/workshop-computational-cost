@@ -1,61 +1,114 @@
 ---
-title: "Computational cost"
-author: "Gabriel Ristow Cidral"
-date: " de febrero de 20"
+title: "Spike Computational cost"
+author: "Gabriel Ristow Cidral / Sara Marín-Lopez"
+date: " 13 / 02 / 20"
 output: html_document
 ---
 
-```{r part 1}
-knitr::opts_chunk$set(echo = TRUE)
+This spike is intended to provide ideas how of to make your code more efficient. 
+
+It will approach 3 methods: Sma rt samples, parallel processing, modeling without caret, opmitization of random forest (mtry)
+
+
+```{r part 1, message=F}
+
 pacman::p_load(readr, dplyr, caret, plotly)
-setwd(
-"C:/Users/gabri/Desktop/Ubiqum/R/Deep_Analytics_and_Visualization/Task_3/Wifi_fingerprinting"
-)
+
+setwd("C:/Users/gabri/Desktop/Ubiqum/R/Deep_Analytics_and_Visualization/Task_3/Wifi_fingerprinting")
+
 train <- read_csv("trainingData.csv", na = c("N/A"))
+
 sample <- train %>% group_by(FLOOR, BUILDINGID) %>% sample_n(10)
+table(sample$BUILDINGID)
+table(sample$FLOOR)
+
 
 ```
+
 
 ```{r plotly, echo=F}
 
 p <- sample %>%
-plot_ly(
-type = "scatter3d",
-x = ~ LATITUDE,
-y = ~ LONGITUDE,
-z = ~ FLOOR,
-text = ~ sample,
-hoverinfo = 'text',
-mode = 'markers',
-transforms = list(
-list(
-type = 'filter',
-target = ~ BUILDINGID,
-operation = '=',
-value = unique(sample$BUILDINGID)[1]
-)
-)
-) %>% layout(updatemenus = list(list(
-type = 'dropdown',
-active = 0,
-buttons = list(
-list(
-method = "restyle",
-args = list("transforms[0].value", unique(sample$BUILDINGID)[1]),
-label = unique(sample$BUILDINGID)[1]
-),
-list(
-method = "restyle",
-args = list("transforms[0].value", unique(sample$BUILDINGID)[2]),
-label = unique(sample$BUILDINGID)[2]
-),
-list(
-method = "restyle",
-args = list("transforms[0].value", unique(sample$BUILDINGID)[3]),
-label = unique(sample$BUILDINGID)[3]
-)
-)
-)))
+plot_ly(type = "scatter3d",
+        x = ~ LATITUDE,
+        y = ~ LONGITUDE,
+        z = ~ FLOOR,
+        text = ~ sample,
+        hoverinfo = 'text',
+        mode = 'markers',
+        transforms = list(
+          list(
+            type = 'filter',
+            target = ~ BUILDINGID,
+            operation = '=',
+            value = unique(sample$BUILDINGID)[1]
+            )
+          )
+        ) %>% layout(updatemenus = list(list(
+          type = 'dropdown', active = 0, 
+          buttons = list(list(
+            method = "restyle",
+            args = list("transforms[0].value", unique(sample$BUILDINGID)[1]),
+            label = unique(sample$BUILDINGID)[1]),
+            list(
+              method = "restyle",
+              args = list("transforms[0].value", unique(sample$BUILDINGID)[2]),
+              label = unique(sample$BUILDINGID)[2]),
+            list(method = "restyle",
+                 args = list("transforms[0].value", unique(sample$BUILDINGID)[3]),
+                 label = unique(sample$BUILDINGID)[3])
+            )
+          )))
+
+
+
+
+
+
+
+table(sample$BUILDINGID)
+
+
+
+
+
+
+p <- sample %>%
+plot_ly(type = "scatter3d",
+        x = ~ LATITUDE,
+        y = ~ LONGITUDE,
+        z = ~ FLOOR,
+        text = ~ sample,
+        hoverinfo = 'text',
+        mode = 'markers',
+        transforms = list(
+          list(
+            type = 'filter',
+            target = ~ BUILDINGID,
+            operation = '=',
+            value = unique(sample$BUILDINGID)[1]
+            )
+          )
+        ) %>% layout(updatemenus = list(
+          list(
+          type = 'dropdown', active = 0, 
+          buttons = list(list(
+            method = "restyle",
+            args = list("transforms[0].value", unique(sample$BUILDINGID)[1]),
+            label = unique(sample$BUILDINGID)[1]),
+            list(
+              method = "restyle",
+              args = list("transforms[0].value", unique(sample$BUILDINGID)[2]),
+              label = unique(sample$BUILDINGID)[2]),
+            list(method = "restyle",
+                 args = list("transforms[0].value", unique(sample$BUILDINGID)[3]),
+                 label = unique(sample$BUILDINGID)[3])
+            )
+          )))
+
+
+
+
 p
 
 ```
