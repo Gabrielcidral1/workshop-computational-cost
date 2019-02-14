@@ -48,7 +48,7 @@ table(sample$BUILDINGID)
 
 ```
 
-plot sample
+plot sample - Building 0, Building 1, Building 2
 ```{r plotly1, echo=T, eval= T}
 
 sample$BUILDINGID <- as.character(sample$BUILDINGID)
@@ -66,9 +66,9 @@ a[[i]] <- sample %>% dplyr:: filter(BUILDINGID == i) %>% plot_ly(type = "scatter
 
 }    
     
-a[[1]]
-a[[2]]
-a[[3]]
+a[[1]] # Building 0
+a[[2]] # Building 1
+a[[3]] # Building 2
        
 
 
