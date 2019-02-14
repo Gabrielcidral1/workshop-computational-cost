@@ -141,6 +141,8 @@ system.time(knn_reg_caret<-train(y=stand_dataset$LONGITUDE, x=stand_dataset[WAPs
 ### SVM: e1071 package  ###
 Explore the main parameters of these functions **<span style="color:MIDNIGHTBLUE">[svm()](https://cran.r-project.org/web/packages/e1071/e1071.pdf)</span>** for classification and regression. 
 
+Read this resource for more info **<span style="color:MIDNIGHTBLUE">[svm()](https://cran.r-project.org/web/packages/e1071/vignettes/svmdoc.pdf)</span>** for classification and regression. 
+
 **Train two svm models with these packages and the caret package**
 ``` {r eval=FALSE, message=FALSE}
 # Load the packages
