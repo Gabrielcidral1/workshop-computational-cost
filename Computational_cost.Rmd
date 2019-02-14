@@ -49,51 +49,55 @@ table(sample$BUILDINGID)
 ```
 
 plot sample
-```{r plotly1, echo=F}
+```{r plotly1, echo=F, eval= T}
 
-p <- sample %>%
-plot_ly(type = "scatter3d",
-        x = ~ LATITUDE,
-        y = ~ LONGITUDE,
-        z = ~ FLOOR,
-        text = ~ sample,
-        hoverinfo = 'text',
-        mode = 'markers',
-        transforms = list(
-          list(
-            type = 'filter',
-            target = ~ BUILDINGID,
-            operation = '=',
-            value = unique(sample$BUILDINGID)[1]
-            )
-          )
-        ) %>% layout(updatemenus = list(list(
-          type = 'dropdown', active = 0, 
-          buttons = list(list(
-            method = "restyle",
-            args = list("transforms[0].value", unique(sample$BUILDINGID)[1]),
-            label = unique(sample$BUILDINGID)[1]),
-            list(
-              method = "restyle",
-              args = list("transforms[0].value", unique(sample$BUILDINGID)[2]),
-              label = unique(sample$BUILDINGID)[2]),
-            list(method = "restyle",
-                 args = list("transforms[0].value", unique(sample$BUILDINGID)[3]),
-                 label = unique(sample$BUILDINGID)[3])
-            )
-          )))
+# p <- sample %>%
+# plot_ly(type = "scatter3d",
+#         x = ~ LATITUDE,
+#         y = ~ LONGITUDE,
+#         z = ~ FLOOR,
+#         text = ~ sample,
+#         hoverinfo = 'text',
+#         mode = 'markers',
+#         transforms = list(
+#           list(
+#             type = 'filter',
+#             target = ~ BUILDINGID,
+#             operation = '=',
+#             value = unique(sample$BUILDINGID)[1]
+#             )
+#           )
+#         ) %>% layout(updatemenus = list(list(
+#           type = 'dropdown', active = 0, 
+#           buttons = list(list(
+#             method = "restyle",
+#             args = list("transforms[0].value", unique(sample$BUILDINGID)[1]),
+#             label = unique(sample$BUILDINGID)[1]),
+#             list(
+#               method = "restyle",
+#               args = list("transforms[0].value", unique(sample$BUILDINGID)[2]),
+#               label = unique(sample$BUILDINGID)[2]),
+#             list(method = "restyle",
+#                  args = list("transforms[0].value", unique(sample$BUILDINGID)[3]),
+#                  label = unique(sample$BUILDINGID)[3])
+#             )
+#           )))
 
-
-p
-
+#p
 
 
-a <- sample %>% dplyr:: filter(BUILDINGID == 2) %>% plot_ly(type = "scatter3d",
+for(i in 0:2){
+a <- sample %>% dplyr:: filter(BUILDINGID == i) %>% plot_ly(type = "scatter3d",
         x = ~ LATITUDE,
         y = ~ LONGITUDE,
         z = ~ FLOOR,
         mode = 'markers')
-a
+
+ggplotly(a)
+
+}
+
+
 
 ```
 
