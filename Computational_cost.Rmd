@@ -1,6 +1,6 @@
 ---
 title: "Spike Computational cost"
-author: "Gabriel Ristow Cidral / Sara Mar�n L�pez"
+author: "Gabriel Ristow Cidral / Sara Marin Lopez"
 date: " 13 / 02 / 20"
 output: 
   html_document:
@@ -22,7 +22,6 @@ Load data
 
 pacman::p_load(readr, dplyr, caret, plotly, htmltools)
 
-# setwd("C:/Users/gabri/Desktop/Ubiqum/R/Deep_Analytics_and_Visualization/Task_3/Wifi_fingerprinting")
 
 train <- read_csv("trainingData.csv", na = c("N/A"))
 
@@ -50,7 +49,7 @@ table(sample$BUILDINGID)
 ```
 
 plot sample
-```{r plotly1, echo=F, eval= T}
+```{r plotly1, echo=T, eval= T}
 
 sample$BUILDINGID <- as.character(sample$BUILDINGID)
 
