@@ -1,9 +1,10 @@
 ---
 title: "Spike Computational cost"
-author: "Gabriel Ristow Cidral / Sara Marín-Lopez"
+author: "Gabriel Ristow Cidral / Sara Mar�n L�pez"
 date: " 13 / 02 / 20"
-output: html_document
-  code_folding: hide
+output: 
+  html_document:
+     code_folding: hide
 ---
 
 This spike is intended to provide ideas how of to make your code more efficient. 
@@ -18,11 +19,8 @@ First, imagine you want to sample the data to try different models faster. You c
 
 pacman::p_load(readr, dplyr, caret, plotly)
 
-setwd("C:/Users/gabri/Desktop/Ubiqum/R/Deep_Analytics_and_Visualization/Task_3/Wifi_fingerprinting")
+# setwd("C:/Users/gabri/Desktop/Ubiqum/R/Deep_Analytics_and_Visualization/Task_3/Wifi_fingerprinting")
 
-# setwd(
-# "C:/Users/gabri/Desktop/Ubiqum/R/Deep_Analytics_and_Visualization/Task_3/"
-# )
 train <- read_csv("trainingData.csv", na = c("N/A"))
 
 sample <- train %>% group_by(FLOOR, BUILDINGID) %>% sample_n(10)
@@ -77,7 +75,96 @@ p
 
 ```
 
-## Parallel processing ##
+## SPECIFIC PACKAGES ##
+### Random Forest: package randomForest ###
+This is the most usual package for training a random forest. It's very user friendly and robust. If you want to learn more about other packages check this **[resource](https://www.linkedin.com/pulse/different-random-forest-packages-r-madhur-modi/)**.
+
+Let's see which are the main parameters of the function **<span style="color:MIDNIGHTBLUE">[randomForest](https://www.rdocumentation.org/packages/randomForest/versions/4.6-14/topics/randomForest)</span>**:
+<ul>
+  <li> ntree: number of trees to grow </li>
+  <li> mtry: how many random variables will be selected to grow in a single tree </li>
+  <li> importance: should importance of predictors be assessed? *Keep in mind that if your data includes categorical variables with different number of levels, random forests are biased in favor of those variables with more levels.* </li>
+</ul>
+
+Another useful function from this package is **<span style="color:MIDNIGHTBLUE">[tuneRF()](https://www.rdocumentation.org/packages/randomForest/versions/4.6-14/topics/tuneRF)</span>**. Starting with the default value of mtry, it searchs for the optimal value. 
+
+**Your turn! Try to obtain the best mtry for your data and train a random forest using this package and the caret package.**
+
+```{r eval=FALSE, message=FALSE }
+# Load package
+library(randomForest)
+
+# Saving the waps in a vector
+WAPs<-grep("WAP", names(train), value=T)
+
+# Get the best mtry
+bestmtry_rf<-tuneRF(sample[WAPs], sample$LONGITUDE, ntreeTry=100,stepFactor=2,improve=0.05,trace=TRUE, plot=T) 
+
+# Train a random forest using that mtry
+system.time(rf_reg<-randomForest(y=sample$LONGITUDE,x=sample[WAPs],importance=T,method="rf", ntree=100, mtry=22))
+
+# Train a random forest using caret package
+system.time(rf_reg_caret<-train(y=sample$LONGITUDE, x=sample[WAPs], data = sample, method="rf", ntree=100,tuneGrid=expand.grid(.mtry=22)))
+```
+
+### KNN: caret package ###
+Explore the main parameters of these functions **<span style="color:MIDNIGHTBLUE">[knn3()](https://www.rdocumentation.org/packages/caret/versions/6.0-81/topics/knn3)</span>** for classification and **<span style="color:MIDNIGHTBLUE">[knnreg()](https://www.rdocumentation.org/packages/caret/versions/6.0-81/topics/knnreg)</span>** for regression:
+
+**Train two knn models with these packages and the caret package:**
+```{r eval=FALSE, message=FALSE}
+# Load the package
+library(caret)
+
+# Saving the waps in a vector
+WAPs<-grep("WAP", names(sample), value=T)
+
+# calculate the pre-process parameters from the dataset
+preprocessParams <- preProcess(sample[WAPs], method=c("center", "scale"))
+
+# transform the waps using the parameters
+stand_waps <- predict(preprocessParams, sample[WAPs])
+
+# complete dataset
+stand_dataset<-cbind(stand_waps, BUILDINGID=sample$BUILDINGID,LONGITUDE=sample$LONGITUDE)
+
+# Train two classification knn (with knn3 and train)
+system.time(knn_clasif <- knn3(BUILDINGID ~ as.matrix(stand_dataset[WAPs]), data = stand_dataset))
+
+system.time(knn_clasif_caret<-train(y=stand_dataset$BUILDINGID, x=stand_dataset[WAPs], data = stand_dataset, method="knn"))
+
+# Train two regression knn (with knnreg and caret)
+system.time(knn_reg<-knnreg(LONGITUDE ~ as.matrix(stand_dataset[WAPs]), data = stand_dataset))
+
+system.time(knn_reg_caret<-train(y=stand_dataset$LONGITUDE, x=stand_dataset[WAPs], data = stand_dataset, method="knn"))
+
+```
+
+### SVM: e1071 package  ###
+Explore the main parameters of these functions **<span style="color:MIDNIGHTBLUE">[svm()](https://cran.r-project.org/web/packages/e1071/e1071.pdf)</span>** for classification and regression. 
+
+**Train two svm models with these packages and the caret package**
+``` {r eval=FALSE, message=FALSE}
+# Load the packages
+library(e1071)
+library(caret)
+
+# Saving the waps in a vector
+WAPs<-grep("WAP", names(sample), value=T)
+
+# Train two classification svm (with svm and train)
+system.time(svm_clasif <- svm(y = stand_dataset$BUILDINGID, x=stand_dataset[WAPs]))
+
+system.time(svm_clasif_caret<-train(y=stand_dataset$BUILDINGID, x=stand_dataset[WAPs], data = stand_dataset, method="svmLinear"))
+
+# Train two regression svm (with svm and train)
+system.time(svm_reg <- svm(y = stand_dataset$LONGITUDE, x=stand_dataset[WAPs]))
+
+system.time(svm_reg_caret<-train(y=stand_dataset$LONGITUDE, x=as.matrix(stand_dataset[WAPs], data = stand_dataset, method="svmLinear")))
+
+ 
+```
+
+## PARALLEL PROCESSING ##
 A computer usually has multiple cores. Tipically, R is going to use only one of them, but we can increase this number, allowing us to execute more computations at the same time. 
 
 **How to do it on Windows**
@@ -116,59 +203,10 @@ registerDoParallel(cluster)
 fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 3, allowParallel = TRUE)
 
 ```
-
-## Specific packages ##
-### Random Forest: package randomForest ###
-This is the most usual package for training a random forest. It's very user friendly and robust. If you want to learn more about other packages check this [resource](https://www.linkedin.com/pulse/different-random-forest-packages-r-madhur-modi/).
-
-Let's see which are the main parameters of the function **<span style="color:MIDNIGHTBLUE">randomForest</span>**:
-<ul>
-  <li> ntree: number of trees to grow </li>
-  <li> mtry: how many random variables will be selected to grow in a single tree </li>
-  <li> importance: should importance of predictors be assessed? *Keep in mind that if your data includes categorical variables with different number of levels, random forests are biased in favor of those variables with more levels.* </li>
-</ul>
-
-Another useful function from this package is **<span style="color:MIDNIGHTBLUE">tuneRF()</span>**. Starting with the default value of mtry, it searchs for the optimal value. 
-
-**Your turn! Try to obtain the best mtry for your data and train a random forest using this package.**
-
-```{r eval=FALSE, message=FALSE }
-# Load package
-library(randomForest)
-
-# Get the best mtry
-bestmtry_rf<-tuneRF(training[WAPS], training$LONGITUDE, ntreeTry=100,stepFactor=2,improve=0.05,trace=TRUE, plot=T) 
-
-# Saving the waps in a vector
-WAPs<-grep("WAP", names(train), value=T))
-
-# Train a random forest using that mtry
-system.time(longitude_rf<-randomForest(y=train$LONGITUDE,x=train[WAPs],importance=T,method="rf", ntree=100, mtry=104))
-```
-
-### KNN: kknn package ###
-This is the most usual package for training a knn. Let's see which are the main parameters of the function **<span style="color:MIDNIGHTBLUE">train.kknn</span>**:
-<ul>
-  <li> ks: number of neighbours </li>
-</ul>
-
-**Your turn! Try to train a knn with this package**
-```{r eval=FALSE, message=FALSE}
-# Load the package
-library(knnn)
-
-# Train the model
-system.time(longitude_knn<-kknn())
-
-```
-
-### SVM:  ###
-
-
-## Saving and loading models ##
+## SAVING AND LOADING MODELS ##
 You can save your best models to a file. This way, you will be able to load/share them later. 
 <ul>
-<li> For saving a model you can mainly use two functions: **<span style="color:MIDNIGHTBLUE">save(___.rda)</span>** or **<span style="color:MIDNIGHTBLUE">saveRDS(____.rds)</span>** </li>
+<li> For saving a model you can mainly use two functions: **<span style="color:MIDNIGHTBLUE">save(____.rda)</span>** or **<span style="color:MIDNIGHTBLUE">saveRDS(____.rds)</span>** </li>
 <li> For loading a model you will need to use **<span style="color:MIDNIGHTBLUE">load(____.rda)</span>** or **<span style="color:MIDNIGHTBLUE">readRDS(____.rds)</span>**
 </ul>
 
@@ -180,16 +218,4 @@ saveRDS(RF_Model, file="RF_Model.rds")
 # Load a model
 final_model<-readRD("RF_Model.rds")
 ```
-
-### Compare Running times ###
-Let's compare how takes a random forest with caret, the function randomForest and parallel processing
-
-You will need to use the function **<span style="color:MIDNIGHTBLUE">microbenchmark()</span>** from the package benchmark. 
-
-*Example: results<-microbenchmark("model"= {"lm=formula"},*
-
-** Do it by yourself **
-```{r eval=FALSE, message=FALSE}
-```
-
 
