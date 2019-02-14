@@ -51,85 +51,9 @@ table(sample$BUILDINGID)
 plot sample
 ```{r plotly1, echo=F, eval= T}
 
-# p <- sample %>%
-# plot_ly(type = "scatter3d",
-#         x = ~ LATITUDE,
-#         y = ~ LONGITUDE,
-#         z = ~ FLOOR,
-#         text = ~ sample,
-#         hoverinfo = 'text',
-#         mode = 'markers',
-#         transforms = list(
-#           list(
-#             type = 'filter',
-#             target = ~ BUILDINGID,
-#             operation = '=',
-#             value = unique(sample$BUILDINGID)[1]
-#             )
-#           )
-#         ) %>% layout(updatemenus = list(list(
-#           type = 'dropdown', active = 0, 
-#           buttons = list(list(
-#             method = "restyle",
-#             args = list("transforms[0].value", unique(sample$BUILDINGID)[1]),
-#             label = unique(sample$BUILDINGID)[1]),
-#             list(
-#               method = "restyle",
-#               args = list("transforms[0].value", unique(sample$BUILDINGID)[2]),
-#               label = unique(sample$BUILDINGID)[2]),
-#             list(method = "restyle",
-#                  args = list("transforms[0].value", unique(sample$BUILDINGID)[3]),
-#                  label = unique(sample$BUILDINGID)[3])
-#             )
-#           )))
-
-#p
-
-
 sample$BUILDINGID <- as.character(sample$BUILDINGID)
 
-for(i in unique(sample$BUILDINGID)){
-a <- sample %>% dplyr:: filter(BUILDINGID == i) %>% plot_ly(type = "scatter3d",
-        x = ~ LATITUDE,
-        y = ~ LONGITUDE,
-        z = ~ FLOOR,
-        mode = 'markers')
 
-subplot(a)
-
-}
-
-
-a <- htmltools::tagList()
-for(j in 1:3){
-  for (i in 0:2) {
-        if(i == 2) {
-      break
-    }
-  a[[j]] <- sample %>% dplyr:: filter(BUILDINGID == i) %>% plot_ly(type = "scatter3d",
-        x = ~ LATITUDE,
-        y = ~ LONGITUDE,
-        z = ~ FLOOR,
-        mode = 'markers')
-  }
-}
-subplot(a)
-
-
-
-a <- htmltools::tagList()
-n_iter <- 3
-for (i in 1:n_iter){
-    iname <- paste("iter",i,sep="")
-    a[[iname]] <- get(iname)
-
-    a[[j]] <- sample %>% dplyr:: filter(BUILDINGID == i) %>% plot_ly(type = "scatter3d",
-        x = ~ LATITUDE,
-        y = ~ LONGITUDE,
-        z = ~ FLOOR,
-        mode = 'markers')
- 
-}    
     
 a <- htmltools::tagList()    
 for(i in unique(sample$BUILDINGID)){
