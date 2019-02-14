@@ -115,46 +115,6 @@ p
 
 ```
 
-## PARALLEL PROCESSING ##
-A computer usually has multiple cores. Tipically, R is going to use only one of them, but we can increase this number, allowing us to execute more computations at the same time. 
-
-**How to do it on Windows**
-<ul>
-  <li>Install the doParallel package </li>
-  <li>Check how many cores you have with the function **<span style="color:MIDNIGHTBLUE">detectCores()</span>**.</li>
-  <li>Save the number of cores that you would like to execute with the function **<span style="color:MIDNIGHTBLUE ">makeCluster()</span>**. A good practice is to leave one for other tasks. </li>
-  <li>Register the cluster with the function **<span style="color:MIDNIGHTBLUE">registerDoParallel()</span>**</li>
-</ul>
-
-**How to do it on Mac/Linux**
-<ul>
-  <li>Install the doMC package </li>
-  <li>Check how many cores you have with the function **<span style="color:MIDNIGHTBLUE">getDoParWorkers()</span>** </li>
-  <li>Save the number of cores that you would like to execute with the function **<span style="color:MIDNIGHTBLUE">makeCluster()</span>**. A good practice is to leave one for other tasks. </li>
-  <li>Register the cluster with the function **<span style="color:MIDNIGHTBLUE">registerDoMC()</span>**</li>
-</ul>
-
-Now you can apply parallel processing! For example, you can use it in the cross validation or in the RF with the parameter "allowParallel = TRUE". 
-
-**Challenge: Train the same sample with parallel processing**
-```{r eval=FALSE,message=FALSE}
-# Load the library
-library(doParallel)
-
-# Check number of cores
-detectCores()
-
-# Save the number of cores I'm going to use
-cluster <- makeCluster(detectCores() - 1)
-
-# Register the cluster
-registerDoParallel(cluster)
-
-# Apply it on the cross validation
-fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 3, allowParallel = TRUE)
-
-```
-
 ## SPECIFIC PACKAGES ##
 ### Random Forest: package randomForest ###
 This is the most usual package for training a random forest. It's very user friendly and robust. If you want to learn more about other packages check this **[resource](https://www.linkedin.com/pulse/different-random-forest-packages-r-madhur-modi/)**.
@@ -198,18 +158,26 @@ library(caret)
 # Saving the waps in a vector
 WAPs<-grep("WAP", names(sample), value=T)
 
-# Train two classification knn (with knn3 and train)
-system.time(knn_clasif <- knn3(BUILDINGID ~ scale(as.matrix(sample[WAPs])), data = sample))
+# calculate the pre-process parameters from the dataset
+preprocessParams <- preProcess(sample[WAPs], method=c("center", "scale"))
 
-system.time(knn_clasif_caret<-train(y=sample$BUILDINGID, x=sample[WAPs], data = sample, method="knn"))
+# transform the waps using the parameters
+stand_waps <- predict(preprocessParams, sample[WAPs])
+
+# complete dataset
+stand_dataset<-cbind(stand_waps, BUILDINGID=sample$BUILDINGID,LONGITUDE=sample$LONGITUDE)
+
+# Train two classification knn (with knn3 and train)
+system.time(knn_clasif <- knn3(BUILDINGID ~ as.matrix(stand_dataset[WAPs]), data = stand_dataset))
+
+system.time(knn_clasif_caret<-train(y=stand_dataset$BUILDINGID, x=stand_dataset[WAPs], data = stand_dataset, method="knn"))
 
 # Train two regression knn (with knnreg and caret)
-system.time(knn_reg<-knnreg(LONGITUDE ~ as.matrix(sample[WAPs]), data = sample))
+system.time(knn_reg<-knnreg(LONGITUDE ~ as.matrix(stand_dataset[WAPs]), data = stand_dataset))
 
-system.time(knn_reg_caret<-train(y=sample$LONGITUDE, x=sample[WAPs], data = sample, method="knn"))
+system.time(knn_reg_caret<-train(y=stand_dataset$LONGITUDE, x=stand_dataset[WAPs], data = stand_dataset, method="knn"))
 
 ```
-
 
 ### SVM: e1071 package  ###
 Explore the main parameters of these functions **<span style="color:MIDNIGHTBLUE">[svm()](https://cran.r-project.org/web/packages/e1071/e1071.pdf)</span>** for classification and regression. 
@@ -224,22 +192,61 @@ library(caret)
 WAPs<-grep("WAP", names(sample), value=T)
 
 # Train two classification svm (with svm and train)
-system.time(svm_clasif <- svm(y = sample$BUILDINGID, x=sample[WAPs]))
+system.time(svm_clasif <- svm(y = stand_dataset$BUILDINGID, x=stand_dataset[WAPs]))
 
-system.time(svm_clasif_caret<-train(y=sample$BUILDINGID, x=sample[WAPs], data = sample, method="svmLinear"))
+system.time(svm_clasif_caret<-train(y=stand_dataset$BUILDINGID, x=stand_dataset[WAPs], data = stand_dataset, method="svmLinear"))
 
 # Train two regression svm (with svm and train)
-system.time(svm_reg <- svm(y = sample$LONGITUDE, x=sample[WAPs]))
+system.time(svm_reg <- svm(y = stand_dataset$LONGITUDE, x=stand_dataset[WAPs]))
 
-system.time(svm_reg_caret<-train(y=sample$LONGITUDE, x=as.matrix(sample[WAPs], data = sample, method="svmLinear")))
+system.time(svm_reg_caret<-train(y=stand_dataset$LONGITUDE, x=as.matrix(stand_dataset[WAPs], data = stand_dataset, method="svmLinear")))
 
  
 ```
 
+## PARALLEL PROCESSING ##
+A computer usually has multiple cores. Tipically, R is going to use only one of them, but we can increase this number, allowing us to execute more computations at the same time. 
+
+**How to do it on Windows**
+<ul>
+  <li>Install the doParallel package </li>
+  <li>Check how many cores you have with the function **<span style="color:MIDNIGHTBLUE">detectCores()</span>**.</li>
+  <li>Save the number of cores that you would like to execute with the function **<span style="color:MIDNIGHTBLUE ">makeCluster()</span>**. A good practice is to leave one for other tasks. </li>
+  <li>Register the cluster with the function **<span style="color:MIDNIGHTBLUE">registerDoParallel()</span>**</li>
+</ul>
+
+**How to do it on Mac/Linux**
+<ul>
+  <li>Install the doMC package </li>
+  <li>Check how many cores you have with the function **<span style="color:MIDNIGHTBLUE">getDoParWorkers()</span>** </li>
+  <li>Save the number of cores that you would like to execute with the function **<span style="color:MIDNIGHTBLUE">makeCluster()</span>**. A good practice is to leave one for other tasks. </li>
+  <li>Register the cluster with the function **<span style="color:MIDNIGHTBLUE">registerDoMC()</span>**</li>
+</ul>
+
+Now you can apply parallel processing! For example, you can use it in the cross validation or in the RF with the parameter "allowParallel = TRUE". 
+
+**Challenge: Train the same sample with parallel processing**
+```{r eval=FALSE,message=FALSE}
+# Load the library
+library(doParallel)
+
+# Check number of cores
+detectCores()
+
+# Save the number of cores I'm going to use
+cluster <- makeCluster(detectCores() - 1)
+
+# Register the cluster
+registerDoParallel(cluster)
+
+# Apply it on the cross validation
+fitControl <- trainControl(method = "repeatedcv", number = 10, repeats = 3, allowParallel = TRUE)
+
+```
 ## SAVING AND LOADING MODELS ##
 You can save your best models to a file. This way, you will be able to load/share them later. 
 <ul>
-<li> For saving a model you can mainly use two functions: **<span style="color:MIDNIGHTBLUE">save(___.rda)</span>** or **<span style="color:MIDNIGHTBLUE">saveRDS(____.rds)</span>** </li>
+<li> For saving a model you can mainly use two functions: **<span style="color:MIDNIGHTBLUE">save(____.rda)</span>** or **<span style="color:MIDNIGHTBLUE">saveRDS(____.rds)</span>** </li>
 <li> For loading a model you will need to use **<span style="color:MIDNIGHTBLUE">load(____.rda)</span>** or **<span style="color:MIDNIGHTBLUE">readRDS(____.rds)</span>**
 </ul>
 
