@@ -1,12 +1,18 @@
 ---
 title: "Spike Computational cost"
 author: "Gabriel Ristow Cidral / Sara Marin Lopez"
-date: " 13 / 02 / 20"
-output: 
-  html_document:
-     code_folding: hide
-
+date: "11/04/2019"
+output:
+  rmdformats::readthedown:
+    thumbnails: true
+    lightbox: true
+    toc_depth: 3
+    gallery: true
+    highlight: tango
 ---
+
+<img style="float: right;" src="https://media.timtul.com/media/network22/ubiqum.png">
+
 
 This spike is intended to provide ideas how of to make your code more efficient. The data used is the indoor 
 
