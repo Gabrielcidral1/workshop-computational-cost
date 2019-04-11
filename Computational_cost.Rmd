@@ -18,7 +18,7 @@ This spike is intended to provide ideas how of to make your code more efficient.
 
 It will approach 3 methods: Smart samples, parallel processing, modeling without caret, opmitization of random forest (mtry)
 
-## "Smart samples"
+## SMART SAMPLES
 
 First, imagine you want to sample the data to try different models faster. You could use the functions sample_n, but you would inccur the risk of having a undistributed sample (such as all observations in building 0) 
 
