@@ -14,7 +14,7 @@ output:
 <img style="float: right;" src="https://media.timtul.com/media/network22/ubiqum.png">
 
 
-This spike is intended to provide ideas how of to make your code more efficient. The data used is the indoor 
+This spike is intended to provide ideas how of to make your code more efficient. The data used is the WIFI dataset.
 
 It will approach 3 methods: Smart samples, parallel processing, modeling without caret, opmitization of random forest (mtry)
 
@@ -170,6 +170,7 @@ system.time(svm_reg_caret<-train(y=stand_dataset$LONGITUDE, x=as.matrix(stand_da
 
  
 ```
+
 
 ## PARALLEL PROCESSING ##
 A computer usually has multiple cores. Tipically, R is going to use only one of them, but we can increase this number, allowing us to execute more computations at the same time. 
